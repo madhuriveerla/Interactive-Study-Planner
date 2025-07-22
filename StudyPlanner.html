@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interactive Study Planner</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-image: url('https://img.freepik.com/free-vector/hand-drawn-school-supplies-pattern-background_23-2150855728.jpg');
+      background-size: cover;
+      background-position: center;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      width: 80%;
+      max-width: 800px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #7f8c8d;
+      margin-bottom: 20px;
+    }
+
+    .study-goal {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin: 20px 0;
+      gap: 10px;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .study-goal input,
+    .study-goal select {
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .time-input {
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    #custom-time-inputs {
+      display: none;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    #add-goal-btn {
+      padding: 12px 24px;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      width: 100%;
+      font-size: 16px;
+    }
+
+    #add-goal-btn:hover {
+      background-color: #1a252f;
+    }
+
+    .study-schedule {
+      display: flex;
+      flex-direction: column;
+      min-height: 200px;
+      border: 1px dashed #ccc;
+      border-radius: 5px;
+      padding: 20px;
+      margin-top: 20px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .study-block {
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      text-align: left;
+      background-color: #3498db;
+      color: white;
+      user-select: none;
+    }
+
+    .study-block:nth-child(even) {
+      background-color: #2ecc71;
+    }
+
+    .drag-over {
+      outline: 3px dashed #f39c12;
+    }
+
+    .stopwatch,
+    .alarm {
+      width: 100%;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .stopwatch-display,
+    .alarm-description {
+      font-size: 1.2em;
+      margin: 5px 0;
+    }
+
+    .stopwatch-controls,
+    .alarm-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    .start-stop-btn {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    .reset-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .set-alarm-btn {
+      background-color: #8e44ad;
+      color: white;
+    }
+
+    .cancel-alarm-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .alarm-description {
+      font-size: 0.9em;
+      color: #f39c12;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Interactive Study Planner</h1>
+    <p>Plan your study schedule with ease</p>
+
+    <div class="study-goal">
+      <input type="text" id="study-goal-input" placeholder="Set a study goal" />
+      <input type="date" id="study-date" />
+      <select id="study-duration">
+        <option value="30">30 minutes</option>
+        <option value="60">1 hour</option>
+        <option value="custom">Custom time</option>
+      </select>
+      <div id="custom-time-inputs">
+        <input type="time" id="start-time" class="time-input" />
+        <select id="start-ampm">
+          <option value="AM">AM</option>
+          <option value="PM">PM</option>
+        </select>
+        <input type="time" id="end-time" class="time-input" />
+        <select id="end-ampm">
+          <option value="AM">AM</option>
+          <option value="PM">PM</option>
+        </select>
+      </div>
+      <button id="add-goal-btn">Add Goal</button>
+    </div>
+
+    <div class="study-schedule" id="study-schedule">
+      <!-- Study blocks will be added here -->
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const addGoalButton = document.getElementById('add-goal-btn');
+      const studyGoalInput = document.getElementById('study-goal-input');
+      const studyDateInput = document.getElementById('study-date');
+      const studyDurationSelect = document.getElementById('study-duration');
+      const customTimeInputs = document.getElementById('custom-time-inputs');
+      const studySchedule = document.getElementById('study-schedule');
+
+      let draggedBlock = null;
+
+      studyDurationSelect.addEventListener('change', function () {
+        if (studyDurationSelect.value === 'custom') {
+          customTimeInputs.style.display = 'flex';
+        } else {
+          customTimeInputs.style.display = 'none';
+        }
+      });
+
+      addGoalButton.addEventListener('click', function () {
+        const goalText = studyGoalInput.value.trim();
+        const dateText = studyDateInput.value;
+        if (goalText && dateText) {
+          let durationText = studyDurationSelect.value;
+          if (durationText === 'custom') {
+            const startTime = document.getElementById('start-time').value;
+            const startAmPm = document.getElementById('start-ampm').value;
+            const endTime = document.getElementById('end-time').value;
+            const endAmPm = document.getElementById('end-ampm').value;
+            if (!startTime || !endTime) {
+              alert('Please enter both start and end times for custom duration.');
+              return;
+            }
+            durationText = `${startTime} ${startAmPm} to ${endTime} ${endAmPm}`;
+          } else {
+            durationText = durationText === '60' ? '1 hour' : `${durationText} minutes`;
+          }
+          addStudyBlock(goalText, dateText, durationText);
+          studyGoalInput.value = '';
+          studyDateInput.value = '';
+          studyDurationSelect.value = '30';
+          customTimeInputs.style.display = 'none';
+          document.getElementById('start-time').value = '';
+          document.getElementById('end-time').value = '';
+        } else {
+          alert('Please enter both a study goal and select a date.');
+        }
+      });
+
+      function addStudyBlock(goalText, dateText, durationText) {
+        const studyBlock = document.createElement('div');
+        studyBlock.className = 'study-block';
+        studyBlock.draggable = true;
+
+        const goalSpan = document.createElement('span');
+        goalSpan.textContent = `${goalText.toUpperCase()} - ${dateText} | ${durationText}`;
+
+        // Stopwatch setup
+        const stopwatchDiv = document.createElement('div');
+        stopwatchDiv.className = 'stopwatch';
+
+        const stopwatchDisplay = document.createElement('div');
+        stopwatchDisplay.className = 'stopwatch-display';
+        stopwatchDisplay.textContent = '00:00:00';
+
+        const stopwatchControls = document.createElement('div');
+        stopwatchControls.className = 'stopwatch-controls';
+
+        const startStopButton = document.createElement('button');
+        startStopButton.className = 'start-stop-btn';
+        startStopButton.textContent = 'Start';
+
+        const resetButton = document.createElement('button');
+        resetButton.className = 'reset-btn';
+        resetButton.textContent = 'Reset';
+
+        stopwatchControls.appendChild(startStopButton);
+        stopwatchControls.appendChild(resetButton);
+
+        stopwatchDiv.appendChild(stopwatchDisplay);
+        stopwatchDiv.appendChild(stopwatchControls);
+
+        // Alarm setup
+        const alarmDiv = document.createElement('div');
+        alarmDiv.className = 'alarm';
+
+        const alarmControls = document.createElement('div');
+        alarmControls.className = 'alarm-controls';
+
+        const setAlarmButton = document.createElement('button');
+        setAlarmButton.className = 'set-alarm-btn';
+        setAlarmButton.textContent = 'Set/Edit Alarm';
+
+        const cancelAlarmButton = document.createElement('button');
+        cancelAlarmButton.className = 'cancel-alarm-btn';
+        cancelAlarmButton.textContent = 'Cancel Alarm';
+
+        const alarmDescription = document.createElement('div');
+        alarmDescription.className = 'alarm-description';
+        alarmDescription.textContent = 'Alarm not set';
+
+        alarmControls.appendChild(setAlarmButton);
+        alarmControls.appendChild(cancelAlarmButton);
+        alarmControls.appendChild(alarmDescription);
+
+        alarmDiv.appendChild(alarmControls);
+
+        studyBlock.appendChild(goalSpan);
+        studyBlock.appendChild(stopwatchDiv);
+        studyBlock.appendChild(alarmDiv);
+
+        let stopwatchSeconds = 0;
+        let stopwatchInterval = null;
+        let alarmTimeout = null;
+
+        function updateStopwatchDisplay() {
+          const hours = Math.floor(stopwatchSeconds / 3600);
+          const minutes = Math.floor((stopwatchSeconds % 3600) / 60);
+          const seconds = stopwatchSeconds % 60;
+          stopwatchDisplay.textContent = `${hours.toString().padStart(2, '0')}:${minutes
+            .toString()
+            .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        startStopButton.addEventListener('click', function () {
+          if (startStopButton.textContent === 'Start') {
+            startStopButton.textContent = 'Stop';
+            stopwatchInterval = setInterval(function () {
+              stopwatchSeconds++;
+              updateStopwatchDisplay();
+            }, 1000);
+          } else {
+            startStopButton.textContent = 'Start';
+            clearInterval(stopwatchInterval);
+          }
+        });
+
+        resetButton.addEventListener('click', function () {
+          clearInterval(stopwatchInterval);
+          stopwatchSeconds = 0;
+          updateStopwatchDisplay();
+          startStopButton.textContent = 'Start';
+        });
+
+        setAlarmButton.addEventListener('click', function () {
+          const newAlarmTime = prompt('Enter alarm time (24h format, e.g., 15:30):', '15:30');
+          if (newAlarmTime) {
+            const [hours, minutes] = newAlarmTime.split(':').map(Number);
+            if (
+              hours >= 0 &&
+              hours < 24 &&
+              minutes >= 0 &&
+              minutes < 60 &&
+              !isNaN(hours) &&
+              !isNaN(minutes)
+            ) {
+              const now = new Date();
+              const alarmDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+
+              if (alarmDate > now) {
+                const timeout = alarmDate.getTime() - now.getTime();
+                clearTimeout(alarmTimeout);
+                alarmTimeout = setTimeout(function () {
+                  alert('Time is up!');
+                }, timeout);
+                alarmDescription.textContent = `Alarm set for ${alarmDate.toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}`;
+              } else {
+                alert('Please enter a future time.');
+              }
+            } else {
+              alert('Invalid time format.');
+            }
+          }
+        });
+
+        cancelAlarmButton.addEventListener('click', function () {
+          clearTimeout(alarmTimeout);
+          alarmDescription.textContent = 'Alarm not set';
+        });
+
+        // Drag & drop handlers
+        studyBlock.addEventListener('dragstart', function (e) {
+          draggedBlock = studyBlock;
+          setTimeout(() => {
+            studyBlock.style.display = 'none';
+          }, 0);
+        });
+
+        studyBlock.addEventListener('dragend', function () {
+          draggedBlock.style.display = 'block';
+          draggedBlock = null;
+        });
+
+        studySchedule.appendChild(studyBlock);
+      }
+
+      studySchedule.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        const dragOverBlock = document.elementFromPoint(e.clientX, e.clientY);
+        if (dragOverBlock && dragOverBlock.classList.contains('study-block')) {
+          dragOverBlock.classList.add('drag-over');
+        }
+      });
+
+      studySchedule.addEventListener('dragleave', function (e) {
+        const dragOverBlock = document.elementFromPoint(e.clientX, e.clientY);
+        if (dragOverBlock && dragOverBlock.classList.contains('study-block')) {
+          dragOverBlock.classList.remove('drag-over');
+        }
+      });
+
+      studySchedule.addEventListener('drop', function (e) {
+        e.preventDefault();
+        const dragOverBlock = document.elementFromPoint(e.clientX, e.clientY);
+        if (dragOverBlock && dragOverBlock.classList.contains('study-block')) {
+          dragOverBlock.classList.remove('drag-over');
+        }
+        if (draggedBlock && dragOverBlock && dragOverBlock !== draggedBlock) {
+          studySchedule.insertBefore(draggedBlock, dragOverBlock);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
